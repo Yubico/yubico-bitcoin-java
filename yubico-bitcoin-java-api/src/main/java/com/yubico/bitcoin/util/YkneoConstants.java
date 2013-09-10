@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2013 Yubico AB.
+ * All rights reserved.
+ * Proprietary code owned by Yubico AB.
+ * No rights to modifications or redistribution.
+ */
+
 package com.yubico.bitcoin.util;
 
 /**
@@ -8,7 +15,7 @@ package com.yubico.bitcoin.util;
  * To change this template use File | Settings | File Templates.
  */
 public interface YkneoConstants {
-    public static final byte[] AID = new byte[]{0x07, (byte) 0xa0, 0x00, 0x00, 0x05, 0x27, 0x21, 0x02};
+    public static final byte[] AID = new byte[]{(byte) 0xa0, 0x00, 0x00, 0x05, 0x27, 0x21, 0x02};
 
     public static final byte INS_GET_PUB = 0x01;
     public static final byte INS_SIGN = 0x02;

@@ -1,13 +1,16 @@
+/*
+ * Copyright (C) 2013 Yubico AB.
+ * All rights reserved.
+ * Proprietary code owned by Yubico AB.
+ * No rights to modifications or redistribution.
+ */
+
 package com.yubico.bitcoin.api;
 
 import java.util.concurrent.Future;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dain
- * Date: 9/10/13
- * Time: 10:43 AM
- * To change this template use File | Settings | File Templates.
+ * Interface to the ykneo-bitcoin applet running on a YubiKey NEO.
  */
 public interface YkneoBitcoin {
     /**

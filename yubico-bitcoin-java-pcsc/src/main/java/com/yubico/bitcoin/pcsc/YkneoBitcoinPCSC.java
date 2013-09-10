@@ -4,6 +4,9 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.yubico.bitcoin.api.*;
 import com.yubico.bitcoin.util.YkneoConstants;
@@ -12,11 +15,8 @@ import javax.smartcardio.CardChannel;
 import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
  * Time: 12:33 PM
  * To change this template use File | Settings | File Templates.
  */
-public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants, Closeable {
+public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
 
     private static ResponseAPDU sendCommand(CardChannel channel, CommandAPDU apdu) throws OperationInterruptedException {
         try {
@@ -35,37 +35,29 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants, Closeable
         }
     }
 
-    private static <T> Future<T> asyncSend(ExecutorService executor, final CardChannel channel, final CommandAPDU apdu, final Function<? super ResponseAPDU, T> process) {
-        final SettableFuture<T> future = SettableFuture.create();
-        executor.submit(new Runnable() {
+    private static <T> ListenableFuture<T> asyncSend(ListeningExecutorService executor, final CardChannel channel, final CommandAPDU apdu, final Function<? super ResponseAPDU, T> process) {
+        return executor.submit(new Callable<T>() {
             @Override
-            public void run() {
-                try {
-                    ResponseAPDU response = sendCommand(channel, apdu);
-                    future.set(process.apply(response));
-                } catch (OperationInterruptedException e) {
-                    future.setException(e);
-                }
+            public T call() throws Exception {
+                return process.apply(sendCommand(channel, apdu));
             }
         });
-
-        return future;
     }
 
-    private static final Function<ResponseAPDU, byte[]> GET_BYTES = new Function<ResponseAPDU, byte[]>() {
+    private static final Function<ResponseAPDU, byte[]> GET_DATA = new Function<ResponseAPDU, byte[]>() {
         @Override
         public byte[] apply(ResponseAPDU response) {
-            return response.getBytes();
+            return response.getData();
         }
     };
 
-    private final ExecutorService executor;
+    private final ListeningExecutorService executor;
     private final CardChannel channel;
     private boolean userUnlocked = false;
     private boolean adminUnlocked = false;
 
     public YkneoBitcoinPCSC(CardChannel channel) throws CardException {
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
         this.channel = channel;
         ResponseAPDU resp = channel.transmit(new CommandAPDU(0x00, 0xa4, 0x04, 0x00, AID));
         if (resp.getSW() != 0x9000) {
@@ -74,21 +66,12 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants, Closeable
     }
 
     @Override
-    public void close() throws IOException {
-        try {
-            channel.close();
-        } catch (CardException e) {
-            throw new IOException(e);
-        }
-    }
-
-    @Override
-    public Future<byte[]> exportExtendedPublicKey() throws PinModeLockedException {
+    public ListenableFuture<byte[]> exportExtendedPublicKey() throws PinModeLockedException {
         if (!adminUnlocked) {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
 
-        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_EXPORT_EXT_PUB_KEY, 0x00, 0x00), GET_BYTES);
+        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_EXPORT_EXT_PUB_KEY, 0x00, 0x00), GET_DATA);
     }
 
     @Override
@@ -184,26 +167,26 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants, Closeable
     }
 
     @Override
-    public Future<byte[]> getPublicKey(int index) throws PinModeLockedException {
+    public ListenableFuture<byte[]> getPublicKey(int index) throws PinModeLockedException {
         if (!userUnlocked) {
             throw new PinModeLockedException(PinMode.USER);
         }
-        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_GET_PUB, 0x00, 0x00, Ints.toByteArray(index)), GET_BYTES);
+        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_GET_PUB, 0x00, 0x00, Ints.toByteArray(index)), GET_DATA);
     }
 
     @Override
-    public Future<byte[]> sign(int index, byte[] hash) throws PinModeLockedException {
+    public ListenableFuture<byte[]> sign(int index, byte[] hash) throws PinModeLockedException {
         if (!userUnlocked) {
             throw new PinModeLockedException(PinMode.USER);
         }
         byte[] data = new byte[hash.length + 4];
         System.arraycopy(Ints.toByteArray(index), 0, data, 0, 4);
         System.arraycopy(hash, 0, data, 4, hash.length);
-        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_SIGN, 0x00, 0x00, data), GET_BYTES);
+        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_SIGN, 0x00, 0x00, data), GET_DATA);
     }
 
     @Override
-    public Future<byte[]> generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException {
+    public ListenableFuture<byte[]> generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException {
         if (!adminUnlocked) {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
@@ -214,11 +197,11 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants, Closeable
         if (returnPrivateKey) {
             p2 |= FLAG_RETURN_PRIVATE;
         }
-        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_GENERATE_KEY_PAIR, 0x00, p2), GET_BYTES);
+        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_GENERATE_KEY_PAIR, 0x00, p2), GET_DATA);
     }
 
     @Override
-    public Future<Void> importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException {
+    public ListenableFuture<Void> importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException {
         if (!adminUnlocked) {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
