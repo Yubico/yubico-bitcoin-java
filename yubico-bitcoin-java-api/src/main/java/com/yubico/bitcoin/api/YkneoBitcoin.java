@@ -14,17 +14,17 @@ public interface YkneoBitcoin {
      * Unlocks user mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
      *
      * @param pin The PIN code to unlock user mode.
-     * @throws IncorrectPINException
+     * @throws IncorrectPINException, OperationInterruptedException
      */
-    void unlockUser(String pin) throws IncorrectPINException;
+    void unlockUser(String pin) throws IncorrectPINException, OperationInterruptedException;
 
     /**
      * Unlocks admin mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
      *
      * @param pin The PIN code to unlock admin mode.
-     * @throws IncorrectPINException
+     * @throws IncorrectPINException, OperationInterruptedException
      */
-    void unlockAdmin(String pin) throws IncorrectPINException;
+    void unlockAdmin(String pin) throws IncorrectPINException, OperationInterruptedException;
 
     /**
      * Check to see if user mode is unlocked.
@@ -46,26 +46,26 @@ public interface YkneoBitcoin {
      *
      * @param oldPin The current user PIN.
      * @param newPin The new user PIN to set.
-     * @throws IncorrectPINException
+     * @throws IncorrectPINException, OperationInterruptedException
      */
-    void setUserPin(String oldPin, String newPin) throws IncorrectPINException;
+    void setUserPin(String oldPin, String newPin) throws IncorrectPINException, OperationInterruptedException;
 
     /**
      * Changes the admin PIN. Does not require admin mode to be unlocked.
      * After successfully setting the PIN, the mode will be locked.
      * @param oldPin The current admin PIN,
      * @param newPin The new admin PIN to set.
-     * @throws IncorrectPINException
+     * @throws IncorrectPINException, OperationInterruptedException
      */
-    void setAdminPin(String oldPin, String newPin) throws IncorrectPINException;
+    void setAdminPin(String oldPin, String newPin) throws IncorrectPINException, OperationInterruptedException;
 
     /**
      * Re-sets and unblocks the user PIN. Can be used if the user PIN is lost.
      * Requires admin mode to be unlocked.
      * @param newPin The new user PIN to set.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, OperationInterruptedException
      */
-    void resetUserPin(String newPin) throws PinModeLockedException;
+    void resetUserPin(String newPin) throws PinModeLockedException, OperationInterruptedException;
 
     /**
      * Gets the public key obtained by deriving a sub key from the master key pair using the given index.
