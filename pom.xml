@@ -11,6 +11,7 @@
     <modules>
         <module>yubico-bitcoin-java-api</module>
         <module>yubico-bitcoin-java-pcsc</module>
+        <module>yubico-bitcoin-java-android</module>
     </modules>
 
     <build>
