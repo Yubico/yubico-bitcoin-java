@@ -39,7 +39,11 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
         return executor.submit(new Callable<T>() {
             @Override
             public T call() throws Exception {
-                return process.apply(sendCommand(channel, apdu));
+                ResponseAPDU resp = sendCommand(channel, apdu);
+                if(resp.getSW() != 0x9000) {
+                    throw new RuntimeException(String.format("APDU error: 0x%04x", resp.getSW()));
+                }
+                return process.apply(resp);
             }
         });
     }
@@ -50,6 +54,8 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
             return response.getData();
         }
     };
+
+    private static final Function<Object,Void> NOTHING = Functions.constant((Void) null);
 
     private final ListeningExecutorService executor;
     private final CardChannel channel;
@@ -206,6 +212,6 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
         byte p2 = allowExport ? FLAG_CAN_EXPORT : 0x00;
-        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_IMPORT_KEY_PAIR, 0x00, p2), Functions.constant((Void) null));
+        return asyncSend(executor, channel, new CommandAPDU(0x00, INS_IMPORT_KEY_PAIR, 0x00, p2, extendedPrivateKey), NOTHING);
     }
 }
