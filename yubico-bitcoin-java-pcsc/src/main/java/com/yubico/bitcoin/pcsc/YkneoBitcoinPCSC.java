@@ -1,6 +1,5 @@
 package com.yubico.bitcoin.pcsc;
 
-import com.google.common.primitives.Ints;
 import com.yubico.bitcoin.api.*;
 import com.yubico.bitcoin.util.YkneoConstants;
 
@@ -160,7 +159,7 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
         if (!userUnlocked) {
             throw new PinModeLockedException(PinMode.USER);
         }
-        return sendAndCheck(channel, new CommandAPDU(0x00, INS_GET_PUB, 0x00, 0x00, Ints.toByteArray(index)));
+        return sendAndCheck(channel, new CommandAPDU(0x00, INS_GET_PUB, 0x00, 0x00, new byte[]{(byte) (index >> 24), (byte) (index >> 16), (byte) (index >> 8), (byte) index}));
     }
 
     @Override
@@ -169,7 +168,7 @@ public class YkneoBitcoinPCSC implements YkneoBitcoin, YkneoConstants {
             throw new PinModeLockedException(PinMode.USER);
         }
         byte[] data = new byte[hash.length + 4];
-        System.arraycopy(Ints.toByteArray(index), 0, data, 0, 4);
+        System.arraycopy(new byte[]{(byte) (index >> 24), (byte) (index >> 16), (byte) (index >> 8), (byte) index}, 0, data, 0, 4);
         System.arraycopy(hash, 0, data, 4, hash.length);
         return sendAndCheck(channel, new CommandAPDU(0x00, INS_SIGN, 0x00, 0x00, data));
     }
