@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2013 Yubico AB.
+ * All rights reserved.
+ * Proprietary code owned by Yubico AB.
+ * No rights to modifications or redistribution.
+ */
+
 package com.yubico.bitcoin.pcsc;
 
 import com.google.common.io.BaseEncoding;
@@ -107,15 +114,15 @@ public class YkneoBitcoinPCSCTest {
     }
 
     @Test
-    public void testImport() throws Exception {
+    public void testImportExtended() throws Exception {
         neo.unlockAdmin(adminPin);
         byte[] importKey = HEX.decode("0488ade4000000000000000000873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d50800e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35");
         neo.importExtendedKeyPair(importKey, true);
     }
 
     @Test
-    public void testExport() throws Exception {
-        testImport();
+    public void testExportExtended() throws Exception {
+        testImportExtended();
         String expectedPubKey = "0488b21e000000000000000000873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d5080339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2";
         String pubKey = HEX.encode(neo.exportExtendedPublicKey());
         assertEquals(expectedPubKey, pubKey);
@@ -123,7 +130,7 @@ public class YkneoBitcoinPCSCTest {
 
     @Test
     public void testGetHeader() throws Exception {
-        testImport();
+        testImportExtended();
         neo.unlockUser(userPin);
         String expectedHeader = "0488ade4000000000000000000";
         String header = HEX.encode(neo.getHeader());
@@ -132,7 +139,7 @@ public class YkneoBitcoinPCSCTest {
 
     @Test
     public void testGetChild() throws Exception {
-        testImport();
+        testImportExtended();
         neo.unlockUser(userPin);
         String pubKey = HEX.encode(neo.getPublicKey(false, 0x80000000)); // m/0'
         String expectedPubKey = "045a784662a4a20a65bf6aab9ae98a6c068a81c52e4b032c0fb5400c706cfccc567f717885be239daadce76b568958305183ad616ff74ed4dc219a74c26d35f839";
@@ -141,7 +148,7 @@ public class YkneoBitcoinPCSCTest {
 
     @Test
     public void testGetDescendant() throws Exception {
-        testImport();
+        testImportExtended();
         neo.unlockUser(userPin);
         String pubKey = HEX.encode(neo.getPublicKey(true, 0x80000000, 1, 0x80000000 | 2)); // m/0'/1/2'
         String expectedPubKey = "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2";
@@ -150,7 +157,7 @@ public class YkneoBitcoinPCSCTest {
 
     @Test
     public void testSign() throws Exception {
-        testImport();
+        testImportExtended();
         neo.unlockUser(userPin);
         byte[] hash = new byte[32];
         byte[] signature = neo.sign(hash, 0);
