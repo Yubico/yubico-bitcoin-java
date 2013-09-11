@@ -3,7 +3,10 @@ package com.yubico.bitcoin.pcsc;
 import com.google.common.io.BaseEncoding;
 import com.yubico.bitcoin.api.IncorrectPINException;
 import com.yubico.bitcoin.api.PinMode;
+import org.hamcrest.Matchers;
 import org.junit.*;
+import org.junit.matchers.JUnitMatchers;
+
 import static org.junit.Assert.*;
 
 import javax.smartcardio.*;
@@ -15,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * User: dain
  * Date: 9/10/13
  * Time: 1:57 PM
- *
+ * <p/>
  * These tests require a YubiKey NEO with the ykneo-bitcoin applet loaded, and the default PINs set.
  */
 public class YkneoBitcoinPCSCTest {
@@ -30,8 +33,8 @@ public class YkneoBitcoinPCSCTest {
     public static void setupClass() throws CardException {
         TerminalFactory factory = TerminalFactory.getDefault();
         CardTerminals terminals = factory.terminals();
-        for(CardTerminal terminal : terminals.list()) {
-            if(terminal.getName().contains(TERMINAL_NAME)) {
+        for (CardTerminal terminal : terminals.list()) {
+            if (terminal.getName().contains(TERMINAL_NAME)) {
                 card = terminal.connect("*");
             }
         }
@@ -39,7 +42,7 @@ public class YkneoBitcoinPCSCTest {
     }
 
     @Before
-    public void setup() throws CardException {
+    public void setup() throws Exception {
         neo = new YkneoBitcoinPCSC(card.getBasicChannel());
     }
 
@@ -84,7 +87,7 @@ public class YkneoBitcoinPCSCTest {
         neo.unlockAdmin(adminPin);
         boolean locked = false;
         int tries = 10;
-        while(!locked && tries-- > 0) {
+        while (!locked && tries-- > 0) {
             try {
                 neo.unlockUser("foobar");
             } catch (IncorrectPINException e) {
@@ -120,15 +123,21 @@ public class YkneoBitcoinPCSCTest {
     }
 
     @Test
-    public void testGetAndSign() throws Exception {
+    public void testGet() throws Exception {
         testImport();
         neo.unlockUser(userPin);
         byte[] pubKey = neo.getPublicKey(0);
         byte[] expectedPubKey = BaseEncoding.base16().lowerCase().decode("04fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea67a50538b6f7d8b5f7a1cc657efd267cde8cc1d8c0451d1340a0fb3642777544");
         assertArrayEquals(expectedPubKey, pubKey);
+    }
 
+    @Test
+    public void testSign() throws Exception {
+        testImport();
+        neo.unlockUser(userPin);
         byte[] hash = new byte[32];
         byte[] signature = neo.sign(0, hash);
         //TODO: Verify signature.
+        assertThat(signature.length, Matchers.lessThanOrEqualTo(72));
     }
 }
