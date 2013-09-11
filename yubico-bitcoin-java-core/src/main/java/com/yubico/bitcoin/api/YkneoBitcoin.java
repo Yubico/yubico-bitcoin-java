@@ -34,7 +34,8 @@ public interface YkneoBitcoin {
      * Unlocks user mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
      *
      * @param pin The PIN code to unlock user mode.
-     * @throws IncorrectPINException, OperationInterruptedException
+     * @throws IncorrectPINException
+     * @throws OperationInterruptedException
      */
     void unlockUser(String pin) throws IncorrectPINException, OperationInterruptedException;
 
@@ -42,7 +43,8 @@ public interface YkneoBitcoin {
      * Unlocks admin mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
      *
      * @param pin The PIN code to unlock admin mode.
-     * @throws IncorrectPINException, OperationInterruptedException
+     * @throws IncorrectPINException
+     * @throws OperationInterruptedException
      */
     void unlockAdmin(String pin) throws IncorrectPINException, OperationInterruptedException;
 
@@ -66,7 +68,8 @@ public interface YkneoBitcoin {
      *
      * @param oldPin The current user PIN.
      * @param newPin The new user PIN to set.
-     * @throws IncorrectPINException, OperationInterruptedException
+     * @throws IncorrectPINException
+     * @throws OperationInterruptedException
      */
     void setUserPin(String oldPin, String newPin) throws IncorrectPINException, OperationInterruptedException;
 
@@ -75,7 +78,8 @@ public interface YkneoBitcoin {
      * After successfully setting the PIN, the mode will be locked.
      * @param oldPin The current admin PIN,
      * @param newPin The new admin PIN to set.
-     * @throws IncorrectPINException, OperationInterruptedException
+     * @throws IncorrectPINException
+     * @throws OperationInterruptedException
      */
     void setAdminPin(String oldPin, String newPin) throws IncorrectPINException, OperationInterruptedException;
 
@@ -83,12 +87,13 @@ public interface YkneoBitcoin {
      * Re-sets and unblocks the user PIN. Can be used if the user PIN is lost.
      * Requires admin mode to be unlocked.
      * @param newPin The new user PIN to set.
-     * @throws PinModeLockedException, OperationInterruptedException
+     * @throws PinModeLockedException
+     * @throws OperationInterruptedException
      */
     void resetUserPin(String newPin) throws PinModeLockedException, OperationInterruptedException;
 
     /**
-     * Gets the 13 byte BIP 32 key header for the stored extended key pair.
+     * Gets the 13 byte BIP 32 key header for the stored extended private key.
      * @return version(4) | depth(4) | parents fingerprint(4) | child number(4)
      * @throws PinModeLockedException
      * @throws OperationInterruptedException
@@ -99,23 +104,28 @@ public interface YkneoBitcoin {
      * Gets the public key obtained by deriving a sub key from the master key pair using the given index.
      * Requires user mode to be unlocked.
      *
+     * @param compress True to return a compressed public key, false to return the uncompressed public key.
      * @param index The index of the derived sub key to get.
-     * @return A 65 byte public key.
-     * @throws PinModeLockedException, UnusableIndexException, OperationInterruptedException
+     * @return A 65 (uncompressed) or 33 (compressed) byte public key.
+     * @throws PinModeLockedException
+     * @throws UnusableIndexException
+     * @throws OperationInterruptedException
      */
-    byte[] getPublicKey(int index) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
+    byte[] getPublicKey(boolean compress, int... index) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
 
     /**
      * Signs the given hash using the private key obtained by deriving a sub key from the master key pair using the given index.
      * Requires user mode to be unlocked.
      *
      *
-     * @param index The index of the derived sub key to sign with.
      * @param hash The 32 byte hash to sign.
+     * @param index The index of the derived sub key to sign with.
      * @return A digital signature.
-     * @throws PinModeLockedException, UnusableIndexException, OperationInterruptedException
+     * @throws PinModeLockedException
+     * @throws UnusableIndexException
+     * @throws OperationInterruptedException
      */
-    byte[] sign(int index, byte[] hash) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
+    byte[] sign(byte[] hash, int... index) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
 
     /**
      * Generates a new master key pair randomly, overwriting any existing key pair stored on the device.
@@ -126,7 +136,8 @@ public interface YkneoBitcoin {
      * @param allowExport Sets the allowExport flag permitting the extended public key to be exported.
      * @param returnPrivateKey When true, the generated extended private key is returned, when false, an empty byte[] is returned.
      * @return A BIP 32 formatted extended private key, if returnPrivateKey is set.
-     * @throws PinModeLockedException, OperationInterruptedException
+     * @throws PinModeLockedException
+     * @throws OperationInterruptedException
      */
     byte[] generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException, OperationInterruptedException;
 
@@ -137,8 +148,8 @@ public interface YkneoBitcoin {
      *
      * @param extendedPrivateKey A BIP 32 formatted extended private key to be imported.
      * @param allowExport Sets the allowExport flag permitting the extended public key to be exported.
-     * @return Nothing is returned, but an exception may be thrown on failue.
-     * @throws PinModeLockedException, OperationInterruptedException
+     * @throws PinModeLockedException
+     * @throws OperationInterruptedException
      */
     void importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException, OperationInterruptedException;
 
@@ -148,7 +159,8 @@ public interface YkneoBitcoin {
      * Requires admin mode to be unlocked.
      *
      * @return A BIP 32 formatted extended public key.
-     * @throws PinModeLockedException, OperationInterruptedException
+     * @throws PinModeLockedException
+     * @throws OperationInterruptedException
      */
     byte[] exportExtendedPublicKey() throws PinModeLockedException, OperationInterruptedException;
 }

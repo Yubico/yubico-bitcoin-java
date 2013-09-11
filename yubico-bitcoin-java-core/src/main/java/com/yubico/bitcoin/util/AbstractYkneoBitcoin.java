@@ -1,6 +1,10 @@
 package com.yubico.bitcoin.util;
 
-import com.yubico.bitcoin.api.*;
+import com.yubico.bitcoin.api.IncorrectPINException;
+import com.yubico.bitcoin.api.OperationInterruptedException;
+import com.yubico.bitcoin.api.PinMode;
+import com.yubico.bitcoin.api.PinModeLockedException;
+import com.yubico.bitcoin.api.YkneoBitcoin;
 
 import java.nio.charset.Charset;
 
@@ -153,25 +157,51 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         if (!userUnlocked) {
             throw new PinModeLockedException(PinMode.USER);
         }
+
         return sendAndCheck(0x00, INS_GET_HEADER, 0x00, 0x00, NO_DATA);
     }
 
-    @Override
-    public byte[] getPublicKey(int index) throws PinModeLockedException, OperationInterruptedException {
-        if (!userUnlocked) {
-            throw new PinModeLockedException(PinMode.USER);
+    private static byte[] fromInts(int[] ints) {
+        byte[] bytes = new byte[ints.length*4];
+        int offset = 0;
+        for (int val : ints) {
+            bytes[offset++] = (byte) (val >> 24);
+            bytes[offset++] = (byte) (val >> 16);
+            bytes[offset++] = (byte) (val >> 8);
+            bytes[offset++] = (byte) val;
         }
-        return sendAndCheck(0x00, INS_GET_PUB, 0x00, 0x00, new byte[]{(byte) (index >> 24), (byte) (index >> 16), (byte) (index >> 8), (byte) index});
+
+        return bytes;
     }
 
     @Override
-    public byte[] sign(int index, byte[] hash) throws PinModeLockedException, OperationInterruptedException {
+    public byte[] getPublicKey(boolean compress, int...index) throws PinModeLockedException, OperationInterruptedException {
         if (!userUnlocked) {
             throw new PinModeLockedException(PinMode.USER);
         }
-        byte[] data = new byte[hash.length + 4];
-        System.arraycopy(new byte[]{(byte) (index >> 24), (byte) (index >> 16), (byte) (index >> 8), (byte) index}, 0, data, 0, 4);
-        System.arraycopy(hash, 0, data, 4, hash.length);
+
+        byte[] pub = sendAndCheck(0x00, INS_GET_PUB, 0x00, 0x00, fromInts(index));
+        if (compress) {
+            byte[] compressed = new byte[33];
+            pub[0] = (byte) ((pub[pub.length-1] & 1) == 0 ? 0x02 : 0x03);
+            System.arraycopy(pub, 0, compressed, 0, compressed.length);
+            return compressed;
+        }
+        return pub;
+    }
+
+    @Override
+    public byte[] sign(byte[] hash, int... index) throws PinModeLockedException, OperationInterruptedException {
+        if (!userUnlocked) {
+            throw new PinModeLockedException(PinMode.USER);
+        }
+        if(hash.length != 32) {
+            throw new IllegalArgumentException("Hash must be 32 bytes!");
+        }
+        byte[] indexBytes = fromInts(index);
+        byte[] data = new byte[indexBytes.length + hash.length];
+        System.arraycopy(indexBytes, 0, data, 0, indexBytes.length);
+        System.arraycopy(hash, 0, data, indexBytes.length, hash.length);
         return sendAndCheck(0x00, INS_SIGN, 0x00, 0x00, data);
     }
 
@@ -180,6 +210,7 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         if (!adminUnlocked) {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
+
         byte p2 = 0x00;
         if (allowExport) {
             p2 |= FLAG_CAN_EXPORT;
@@ -195,6 +226,7 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         if (!adminUnlocked) {
             throw new PinModeLockedException(PinMode.ADMIN);
         }
+
         byte p2 = allowExport ? FLAG_CAN_EXPORT : 0x00;
         send(0x00, INS_IMPORT_KEY_PAIR, 0x00, p2, extendedPrivateKey);
     }

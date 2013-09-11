@@ -5,13 +5,10 @@ import com.yubico.bitcoin.api.IncorrectPINException;
 import com.yubico.bitcoin.api.PinMode;
 import org.hamcrest.Matchers;
 import org.junit.*;
-import org.junit.matchers.JUnitMatchers;
 
 import static org.junit.Assert.*;
 
 import javax.smartcardio.*;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,6 +22,8 @@ public class YkneoBitcoinPCSCTest {
     private static final String TERMINAL_NAME = "Yubikey NEO";
     private static final String userPin = "000000";
     private static final String adminPin = "00000000";
+
+    private static final BaseEncoding HEX = BaseEncoding.base16().lowerCase();
 
     private static Card card;
     private YkneoBitcoinPCSC neo;
@@ -110,25 +109,43 @@ public class YkneoBitcoinPCSCTest {
     @Test
     public void testImport() throws Exception {
         neo.unlockAdmin(adminPin);
-        byte[] importKey = BaseEncoding.base16().lowerCase().decode("0488ade400000000000000000060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689004b03d6fc340455b363f51020ad3ecca4f0850280cf436c70c727923f6db46c3e");
+        byte[] importKey = HEX.decode("0488ade4000000000000000000873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d50800e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35");
         neo.importExtendedKeyPair(importKey, true);
     }
 
     @Test
     public void testExport() throws Exception {
         testImport();
-        byte[] expectedPubKey = BaseEncoding.base16().lowerCase().decode("0488b21e00000000000000000060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd968903cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7");
-        byte[] pubKey = neo.exportExtendedPublicKey();
-        assertArrayEquals(expectedPubKey, pubKey);
+        String expectedPubKey = "0488b21e000000000000000000873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d5080339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2";
+        String pubKey = HEX.encode(neo.exportExtendedPublicKey());
+        assertEquals(expectedPubKey, pubKey);
     }
 
     @Test
-    public void testGet() throws Exception {
+    public void testGetHeader() throws Exception {
         testImport();
         neo.unlockUser(userPin);
-        byte[] pubKey = neo.getPublicKey(0);
-        byte[] expectedPubKey = BaseEncoding.base16().lowerCase().decode("04fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea67a50538b6f7d8b5f7a1cc657efd267cde8cc1d8c0451d1340a0fb3642777544");
-        assertArrayEquals(expectedPubKey, pubKey);
+        String expectedHeader = "0488ade4000000000000000000";
+        String header = HEX.encode(neo.getHeader());
+        assertEquals(expectedHeader, header);
+    }
+
+    @Test
+    public void testGetChild() throws Exception {
+        testImport();
+        neo.unlockUser(userPin);
+        String pubKey = HEX.encode(neo.getPublicKey(false, 0x80000000)); // m/0'
+        String expectedPubKey = "045a784662a4a20a65bf6aab9ae98a6c068a81c52e4b032c0fb5400c706cfccc567f717885be239daadce76b568958305183ad616ff74ed4dc219a74c26d35f839";
+        assertEquals(expectedPubKey, pubKey);
+    }
+
+    @Test
+    public void testGetDescendant() throws Exception {
+        testImport();
+        neo.unlockUser(userPin);
+        String pubKey = HEX.encode(neo.getPublicKey(true, 0x80000000, 1, 0x80000000 | 2)); // m/0'/1/2'
+        String expectedPubKey = "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2";
+        assertEquals(expectedPubKey, pubKey);
     }
 
     @Test
@@ -136,7 +153,7 @@ public class YkneoBitcoinPCSCTest {
         testImport();
         neo.unlockUser(userPin);
         byte[] hash = new byte[32];
-        byte[] signature = neo.sign(0, hash);
+        byte[] signature = neo.sign(hash, 0);
         //TODO: Verify signature.
         assertThat(signature.length, Matchers.lessThanOrEqualTo(72));
     }
