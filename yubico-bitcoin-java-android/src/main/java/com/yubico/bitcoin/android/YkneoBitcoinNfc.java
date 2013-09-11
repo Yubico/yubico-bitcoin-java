@@ -5,7 +5,6 @@ import com.yubico.bitcoin.api.*;
 import com.yubico.bitcoin.util.YkneoConstants;
 
 import java.io.IOException;
-import java.util.concurrent.Future;
 
 /**
  * Created with IntelliJ IDEA.
@@ -59,11 +58,6 @@ public class YkneoBitcoinNfc implements YkneoBitcoin, YkneoConstants {
         if(!compareStatus(resp, APDU_OK)) {
             apduError(resp);
         }
-    }
-
-    @Override
-    public Future<byte[]> exportExtendedPublicKey() throws PinModeLockedException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -157,22 +151,32 @@ public class YkneoBitcoinNfc implements YkneoBitcoin, YkneoConstants {
     }
 
     @Override
-    public Future<byte[]> getPublicKey(int index) throws PinModeLockedException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public byte[] getHeader() throws PinModeLockedException, OperationInterruptedException {
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public Future<byte[]> sign(int index, byte[] hash) throws PinModeLockedException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public byte[] getPublicKey(int index) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException {
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public Future<byte[]> generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public byte[] sign(int index, byte[] hash) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException {
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public Future<Void> importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public byte[] generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException, OperationInterruptedException {
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException, OperationInterruptedException {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public byte[] exportExtendedPublicKey() throws PinModeLockedException, OperationInterruptedException {
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

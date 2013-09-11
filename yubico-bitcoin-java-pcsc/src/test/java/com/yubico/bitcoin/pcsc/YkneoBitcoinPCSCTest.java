@@ -100,8 +100,7 @@ public class YkneoBitcoinPCSCTest {
     @Test
     public void testGenerateKey() throws Exception {
         neo.unlockAdmin(adminPin);
-        Future<byte[]> future = neo.generateMasterKeyPair(true, true);
-        byte[] privateKey = future.get(1, TimeUnit.MINUTES);
+        byte[] privateKey = neo.generateMasterKeyPair(true, true);
         assertEquals(78, privateKey.length);
     }
 
@@ -109,14 +108,14 @@ public class YkneoBitcoinPCSCTest {
     public void testImport() throws Exception {
         neo.unlockAdmin(adminPin);
         byte[] importKey = BaseEncoding.base16().lowerCase().decode("0488ade400000000000000000060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689004b03d6fc340455b363f51020ad3ecca4f0850280cf436c70c727923f6db46c3e");
-        neo.importExtendedKeyPair(importKey, true).get(1, TimeUnit.MINUTES);
+        neo.importExtendedKeyPair(importKey, true);
     }
 
     @Test
     public void testExport() throws Exception {
         testImport();
         byte[] expectedPubKey = BaseEncoding.base16().lowerCase().decode("0488b21e00000000000000000060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd968903cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7");
-        byte[] pubKey = neo.exportExtendedPublicKey().get(1, TimeUnit.MINUTES);
+        byte[] pubKey = neo.exportExtendedPublicKey();
         assertArrayEquals(expectedPubKey, pubKey);
     }
 
@@ -124,12 +123,12 @@ public class YkneoBitcoinPCSCTest {
     public void testGetAndSign() throws Exception {
         testImport();
         neo.unlockUser(userPin);
-        byte[] pubKey = neo.getPublicKey(0).get(1, TimeUnit.MINUTES);
+        byte[] pubKey = neo.getPublicKey(0);
         byte[] expectedPubKey = BaseEncoding.base16().lowerCase().decode("04fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea67a50538b6f7d8b5f7a1cc657efd267cde8cc1d8c0451d1340a0fb3642777544");
         assertArrayEquals(expectedPubKey, pubKey);
 
         byte[] hash = new byte[32];
-        byte[] signature = neo.sign(0, hash).get(1, TimeUnit.MINUTES);
+        byte[] signature = neo.sign(0, hash);
         //TODO: Verify signature.
     }
 }

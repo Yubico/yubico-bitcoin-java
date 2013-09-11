@@ -7,8 +7,6 @@
 
 package com.yubico.bitcoin.api;
 
-import java.util.concurrent.Future;
-
 /**
  * Interface to the ykneo-bitcoin applet running on a YubiKey NEO.
  *
@@ -90,35 +88,34 @@ public interface YkneoBitcoin {
     void resetUserPin(String newPin) throws PinModeLockedException, OperationInterruptedException;
 
     /**
+     * Gets the 13 byte BIP 32 key header for the stored extended key pair.
+     * @return version(4) | depth(4) | parents fingerprint(4) | child number(4)
+     * @throws PinModeLockedException
+     * @throws OperationInterruptedException
+     */
+    byte[] getHeader() throws  PinModeLockedException, OperationInterruptedException;
+
+    /**
      * Gets the public key obtained by deriving a sub key from the master key pair using the given index.
-     * This method is asynchronous, yielding the result from the Future.
      * Requires user mode to be unlocked.
-     *
-     * The resulting Future may throw the following exceptions:
-     *   UnusableIndexException
-     *   OperationInterruptedException
      *
      * @param index The index of the derived sub key to get.
      * @return A 65 byte public key.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, UnusableIndexException, OperationInterruptedException
      */
-    Future<byte[]> getPublicKey(int index) throws PinModeLockedException;
+    byte[] getPublicKey(int index) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
 
     /**
      * Signs the given hash using the private key obtained by deriving a sub key from the master key pair using the given index.
-     * This method is asynchronous, yielding the result from the Future.
      * Requires user mode to be unlocked.
      *
-     * The resulting Future may throw the following exceptions:
-     *   UnusableIndexException
-     *   OperationInterruptedException
      *
      * @param index The index of the derived sub key to sign with.
      * @param hash The 32 byte hash to sign.
      * @return A digital signature.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, UnusableIndexException, OperationInterruptedException
      */
-    Future<byte[]> sign(int index, byte[] hash) throws PinModeLockedException;
+    byte[] sign(int index, byte[] hash) throws PinModeLockedException, UnusableIndexException, OperationInterruptedException;
 
     /**
      * Generates a new master key pair randomly, overwriting any existing key pair stored on the device.
@@ -126,41 +123,32 @@ public interface YkneoBitcoin {
      * The returnPrivateKey flag determines if the generated key should be returned from the device (for backup purposes) or not.
      * Requires admin mode to be unlocked.
      *
-     * The resulting Future may throw the following exceptions:
-     *   OperationInterruptedException
-     *
      * @param allowExport Sets the allowExport flag permitting the extended public key to be exported.
      * @param returnPrivateKey When true, the generated extended private key is returned, when false, an empty byte[] is returned.
      * @return A BIP 32 formatted extended private key, if returnPrivateKey is set.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, OperationInterruptedException
      */
-    Future<byte[]> generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException;
+    byte[] generateMasterKeyPair(boolean allowExport, boolean returnPrivateKey) throws PinModeLockedException, OperationInterruptedException;
 
     /**
      * Imports a new extended key pair, overwriting any existing key pair stored on the device.
      * The allowExport flag determines if the extended public key can later be exported or not.
      * Requires admin mode to be unlocked.
      *
-     * The resulting Future may throw the following exceptions:
-     *   OperationInterruptedException
-     *
      * @param extendedPrivateKey A BIP 32 formatted extended private key to be imported.
      * @param allowExport Sets the allowExport flag permitting the extended public key to be exported.
      * @return Nothing is returned, but an exception may be thrown on failue.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, OperationInterruptedException
      */
-    Future<Void> importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException;
+    void importExtendedKeyPair(byte[] extendedPrivateKey, boolean allowExport) throws PinModeLockedException, OperationInterruptedException;
 
     /**
      * Exports the stored extended public key which can be used for the creation of read-only wallets.
      * Unless the allowExport flag was set when the key was generated or imported, this method will fail.
      * Requires admin mode to be unlocked.
      *
-     * The resulting Future may throw the following exceptions:
-     *   OperationInterruptedException
-     *
      * @return A BIP 32 formatted extended public key.
-     * @throws PinModeLockedException
+     * @throws PinModeLockedException, OperationInterruptedException
      */
-    Future<byte[]> exportExtendedPublicKey() throws PinModeLockedException;
+    byte[] exportExtendedPublicKey() throws PinModeLockedException, OperationInterruptedException;
 }
