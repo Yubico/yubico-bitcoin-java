@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>${pom.parent.groupId}</groupId>
-            <artifactId>yubico-bitcoin-java-api</artifactId>
+            <artifactId>yubico-bitcoin-java-core</artifactId>
             <version>${pom.parent.version}</version>
         </dependency>
 	<dependency>

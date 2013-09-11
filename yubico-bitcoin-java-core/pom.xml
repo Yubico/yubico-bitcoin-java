@@ -16,7 +16,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>yubico-bitcoin-java-api</artifactId>
+    <artifactId>yubico-bitcoin-java-core</artifactId>
 
 
 </project>
