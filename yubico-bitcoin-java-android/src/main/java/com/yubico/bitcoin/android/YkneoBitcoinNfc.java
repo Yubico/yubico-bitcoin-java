@@ -17,8 +17,6 @@ import java.io.IOException;
  * YkneoBitcoin implementation for Android using NFC for communication with a YubiKey NEO.
  */
 public class YkneoBitcoinNfc extends AbstractYkneoBitcoin {
-    private static final byte[] SELECT_CMD = new byte[]{0x00, (byte) 0xa4, 0x04, 0x00};
-
     private final IsoDep nfc;
 
     public YkneoBitcoinNfc(IsoDep nfc) throws IOException, OperationInterruptedException {
