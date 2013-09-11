@@ -15,11 +15,7 @@ import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dain
- * Date: 9/10/13
- * Time: 12:33 PM
- * To change this template use File | Settings | File Templates.
+ * YkneoBitcoin implementation that uses javax.smartcardio to talk to a YubiKey NEO over PCSC.
  */
 public class YkneoBitcoinPCSC extends AbstractYkneoBitcoin {
     private final CardChannel channel;

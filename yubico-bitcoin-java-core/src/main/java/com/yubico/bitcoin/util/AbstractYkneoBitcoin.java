@@ -16,11 +16,9 @@ import com.yubico.bitcoin.api.YkneoBitcoin;
 import java.nio.charset.Charset;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dain
- * Date: 9/11/13
- * Time: 11:12 AM
- * To change this template use File | Settings | File Templates.
+ * Abstract class for implementing YkneoBitcoin.
+ * Provides full implementation for YkneoBitcoin, the extending class need only implement the send method.
+ * Subclasses should call select() before trying to invoke any other methods, but after send has been initialized.
  */
 public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstants {
     public static final Charset ASCII = Charset.forName("US-ASCII");

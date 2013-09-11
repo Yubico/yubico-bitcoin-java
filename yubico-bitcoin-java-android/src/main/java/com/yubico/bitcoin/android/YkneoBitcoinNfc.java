@@ -10,16 +10,11 @@ package com.yubico.bitcoin.android;
 import android.nfc.tech.IsoDep;
 import com.yubico.bitcoin.api.*;
 import com.yubico.bitcoin.util.AbstractYkneoBitcoin;
-import com.yubico.bitcoin.util.YkneoConstants;
 
 import java.io.IOException;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dain
- * Date: 9/10/13
- * Time: 4:49 PM
- * To change this template use File | Settings | File Templates.
+ * YkneoBitcoin implementation for Android using NFC for communication with a YubiKey NEO.
  */
 public class YkneoBitcoinNfc extends AbstractYkneoBitcoin {
     private static final byte[] SELECT_CMD = new byte[]{0x00, (byte) 0xa4, 0x04, 0x00};
