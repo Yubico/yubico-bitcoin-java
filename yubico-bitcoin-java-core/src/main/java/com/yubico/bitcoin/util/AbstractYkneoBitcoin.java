@@ -32,7 +32,7 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
     }
 
     protected static void apduError(byte[] resp) {
-        throw new RuntimeException(String.format("APDU error: 0x%04x", resp[resp.length-2] << 8 | resp[resp.length-1]));
+        throw new RuntimeException(String.format("APDU error: 0x%02x%02x", resp[resp.length-2], resp[resp.length-1]));
     }
 
     protected abstract byte[] send(int cla, int ins, int p1, int p2, byte[] data) throws OperationInterruptedException;

@@ -150,7 +150,7 @@ public class YkneoBitcoinPCSCTest {
     public void testGetDescendant() throws Exception {
         testImportExtended();
         neo.unlockUser(userPin);
-        String pubKey = HEX.encode(neo.getPublicKey(true, 0x80000000, 1, 0x80000000 | 2)); // m/0'/1/2'
+        String pubKey = HEX.encode(neo.getPublicKey(true, 0x80000000, 1, 0x80000002)); // m/0'/1/2'/2/1000000000
         String expectedPubKey = "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2";
         assertEquals(expectedPubKey, pubKey);
     }
