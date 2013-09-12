@@ -53,6 +53,11 @@ public class YkneoBitcoinPCSCTest {
     }
 
     @Test
+    public void testGetVersion() throws Exception {
+        assertArrayEquals(new byte[] {0, 0, 1}, neo.getAppletVersion());
+    }
+
+    @Test
     public void testSetUserPin() throws Exception {
         String newPin = "hello world";
         neo.setUserPin(userPin, newPin);

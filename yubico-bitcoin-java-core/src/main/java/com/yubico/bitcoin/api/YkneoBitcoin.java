@@ -31,6 +31,14 @@ package com.yubico.bitcoin.api;
  */
 public interface YkneoBitcoin {
     /**
+     * Gets the version of the ykneo-bitcoin applet that is loaded on the YubiKey NEO as a 3 byte array.
+     * The contained bytes represent the major, minor and micro versions of the applet.
+     *
+     * @return The ykneo-bitcoin applet version.
+     */
+    byte[] getAppletVersion();
+
+    /**
      * Unlocks user mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
      *
      * @param pin The PIN code to unlock user mode.

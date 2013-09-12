@@ -24,6 +24,7 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
     public static final Charset ASCII = Charset.forName("US-ASCII");
     public static final byte[] NO_DATA = new byte[0];
 
+    private final byte[] version = new byte[3];
     private boolean userUnlocked = false;
     private boolean adminUnlocked = false;
 
@@ -43,6 +44,7 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         if (status != 0x9000) {
             throw new RuntimeException(String.format("Unable to select the applet, error code: 0x%04x", status));
         }
+        System.arraycopy(resp, 0, version, 0, 3);
     }
 
     protected byte[] sendAndCheck(int cla, int ins, int p1, int p2, byte[] data) throws OperationInterruptedException {
@@ -53,6 +55,13 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         byte[] respData = new byte[resp.length -2];
         System.arraycopy(resp, 0, respData, 0, respData.length);
         return respData;
+    }
+
+    @Override
+    public byte[] getAppletVersion() {
+        byte[] copy = new byte[3];
+        System.arraycopy(version, 0, copy, 0, 3);
+        return copy;
     }
 
     @Override
