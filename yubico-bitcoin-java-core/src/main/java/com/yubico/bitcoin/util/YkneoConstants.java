@@ -29,6 +29,7 @@ public interface YkneoConstants {
 
     public static final byte FLAG_CAN_EXPORT = 0x01;
     public static final byte FLAG_RETURN_PRIVATE = 0x02;
+    public static final byte FLAG_TESTNET = 0x04;
     public static final byte FLAG_ADMIN_PIN = 0x01;
 
     public static final byte PIN_MAX_LENGTH = 127;

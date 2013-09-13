@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
  * Time: 11:29 AM
  * To change this template use File | Settings | File Templates.
  */
-public class UnusableIndexException extends ExecutionException {
+public class UnusableIndexException extends YkneoBitcoinException {
     private final int index;
 
     public UnusableIndexException(int index) {

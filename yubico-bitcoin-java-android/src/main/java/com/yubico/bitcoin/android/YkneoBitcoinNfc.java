@@ -19,7 +19,7 @@ import java.io.IOException;
 public class YkneoBitcoinNfc extends AbstractYkneoBitcoin {
     private final IsoDep nfc;
 
-    public YkneoBitcoinNfc(IsoDep nfc) throws IOException, OperationInterruptedException {
+    public YkneoBitcoinNfc(IsoDep nfc) throws IOException {
         this.nfc = nfc;
 
         nfc.connect();
@@ -27,7 +27,7 @@ public class YkneoBitcoinNfc extends AbstractYkneoBitcoin {
     }
 
     @Override
-    protected byte[] send(int cla, int ins, int p1, int p2, byte[] data) throws OperationInterruptedException {
+    protected byte[] send(int cla, int ins, int p1, int p2, byte[] data) throws IOException {
         byte[] apdu = new byte[data.length + 5];
         apdu[0] = (byte) cla;
         apdu[1] = (byte) ins;
@@ -35,10 +35,6 @@ public class YkneoBitcoinNfc extends AbstractYkneoBitcoin {
         apdu[3] = (byte) p2;
         apdu[4] = (byte) data.length;
         System.arraycopy(data, 0, apdu, 5, data.length);
-        try {
-            return nfc.transceive(apdu);
-        } catch (IOException e) {
-            throw new OperationInterruptedException(e);
-        }
+        return nfc.transceive(apdu);
     }
 }

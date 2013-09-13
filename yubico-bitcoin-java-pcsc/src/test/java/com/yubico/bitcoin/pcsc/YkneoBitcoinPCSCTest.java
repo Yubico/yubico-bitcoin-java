@@ -8,14 +8,14 @@
 package com.yubico.bitcoin.pcsc;
 
 import com.google.common.io.BaseEncoding;
-import com.yubico.bitcoin.api.IncorrectPINException;
-import com.yubico.bitcoin.api.PinMode;
+import com.yubico.bitcoin.api.*;
 import org.hamcrest.Matchers;
 import org.junit.*;
 
 import static org.junit.Assert.*;
 
 import javax.smartcardio.*;
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,10 +33,10 @@ public class YkneoBitcoinPCSCTest {
     private static final BaseEncoding HEX = BaseEncoding.base16().lowerCase();
 
     private static Card card;
-    private YkneoBitcoinPCSC neo;
+    private YkneoBitcoin neo;
 
     @BeforeClass
-    public static void setupClass() throws CardException {
+    public static void setupClass() throws CardException, IOException, IncorrectPINException, PinModeLockedException {
         TerminalFactory factory = TerminalFactory.getDefault();
         CardTerminals terminals = factory.terminals();
         for (CardTerminal terminal : terminals.list()) {
@@ -45,6 +45,16 @@ public class YkneoBitcoinPCSCTest {
             }
         }
         assertNotNull("YubiKey NEO not found!", card);
+
+        //Ensure that the key is empty
+        YkneoBitcoin neo = new YkneoBitcoinPCSC(card.getBasicChannel());
+        try {
+            neo.unlockUser(userPin);
+            neo.getHeader();
+            fail("Key already loaded!");
+        } catch (NoKeyLoadedException e) {
+
+        }
     }
 
     @Before
@@ -114,7 +124,7 @@ public class YkneoBitcoinPCSCTest {
     @Test
     public void testGenerateKey() throws Exception {
         neo.unlockAdmin(adminPin);
-        byte[] privateKey = neo.generateMasterKeyPair(true, true);
+        byte[] privateKey = neo.generateMasterKeyPair(true, true, false);
         assertEquals(78, privateKey.length);
     }
 

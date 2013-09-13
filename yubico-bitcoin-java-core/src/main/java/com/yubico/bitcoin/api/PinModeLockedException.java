@@ -14,7 +14,7 @@ package com.yubico.bitcoin.api;
  * Time: 11:04 AM
  * To change this template use File | Settings | File Templates.
  */
-public class PinModeLockedException extends Exception {
+public class PinModeLockedException extends YkneoBitcoinException {
     private final PinMode pinMode;
 
     public PinModeLockedException(PinMode pinMode) {
