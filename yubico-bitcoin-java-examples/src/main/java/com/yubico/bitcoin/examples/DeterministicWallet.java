@@ -12,7 +12,6 @@ import com.google.bitcoin.crypto.*;
 import com.google.bitcoin.script.Script;
 import com.google.bitcoin.script.ScriptBuilder;
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -20,24 +19,20 @@ import com.google.common.primitives.Ints;
 import com.yubico.bitcoin.api.PinModeLockedException;
 import com.yubico.bitcoin.api.UnusableIndexException;
 import com.yubico.bitcoin.api.YkneoBitcoin;
-import org.spongycastle.crypto.params.KeyParameter;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: dain
- * Date: 9/16/13
- * Time: 9:12 AM
- * To change this template use File | Settings | File Templates.
+ * This is an example using a bitcoinj Wallet together with a YubiKey NEO with a BIP 32 master key.
+ * External (public) addresses are derived from the master key using the m/0 chain.
+ * Internal (change) addresses are derived from the master key using the m/1 chain.
+ *
+ * Note that m doesn't need to be the root key, it can be any extended key, as long as it is loaded onto the NEO.
  */
-public class DeterministicWallet implements BlockChainListener, Serializable {
-    private static final long serialVersionUID = -2797668513289160303L;
+public class DeterministicWallet {
     private static final int LOOKAHEAD_WINDOW = 10;
 
     private static final ImmutableList<ChildNumber> EXTERNAL_CHAIN = ImmutableList.of(new ChildNumber(0, false));
@@ -54,6 +49,8 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
     public DeterministicWallet(Wallet wallet, DeterministicKey master) {
         this.wallet = wallet;
 
+        wallet.addEventListener(new WalletListener());
+
         //Derive from same master.
         externalKeys = new DeterministicHierarchy(master);
         externalKeys.get(EXTERNAL_CHAIN, true, true);
@@ -64,6 +61,10 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
         for (int i = 0; i < LOOKAHEAD_WINDOW; i++) {
             createInternal();
             createExternal();
+        }
+
+        for(Transaction tx : wallet.getTransactions(true)) {
+            seeTransaction(tx);
         }
     }
 
@@ -108,6 +109,22 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
         throw new RuntimeException("Deterministic key not found!");
     }
 
+    private void seeTransaction(Transaction tx) {
+        for(TransactionOutput output : tx.getOutputs()) {
+            try {
+                if(output.isMine(wallet)) {
+                    if (output.getScriptPubKey().isSentToRawPubKey()) {
+                        updateInternalLookahead(wallet.findKeyFromPubKey(output.getScriptBytes()));
+                    } else {
+                        updateExternalLookahead(wallet.findKeyFromPubHash(output.getScriptPubKey().getPubKeyHash()));
+                    }
+                }
+            } catch (ScriptException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+    }
+
     private void updateExternalLookahead(ECKey key) {
         List<ChildNumber> path = Lists.newArrayList(EXTERNAL_CHAIN);
         path.add(null);
@@ -141,51 +158,16 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
         }
     }
 
-    @Override
-    public void receiveFromBlock(Transaction tx, StoredBlock block, AbstractBlockChain.NewBlockType blockType) throws VerificationException {
-        for (TransactionOutput out : tx.getOutputs()) {
-            if (out.isMine(wallet)) {
-                if (out.getScriptPubKey().isSentToRawPubKey()) {
-                    updateInternalLookahead(wallet.findKeyFromPubKey(out.getScriptBytes()));
-                } else {
-                    updateExternalLookahead(wallet.findKeyFromPubHash(out.getScriptPubKey().getPubKeyHash()));
-                }
-            }
-        }
-    }
-
-    @Override
-    public boolean isTransactionRelevant(Transaction tx) throws ScriptException {
-        return wallet.isTransactionRelevant(tx);
-    }
-
-    @Override
-    public void notifyNewBestBlock(StoredBlock block) throws VerificationException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks, List<StoredBlock> newBlocks) throws VerificationException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block, AbstractBlockChain.NewBlockType blockType) throws VerificationException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     public Address getChangeAddress() {
         List<ChildNumber> path = Lists.newArrayList(INTERNAL_CHAIN);
         path.add(new ChildNumber(nextInternal++, false));
         return internalKeys.get(path, true, false).toECKey().toAddress(wallet.getParams());
     }
 
-    public Transaction sendCoins(Address address, BigInteger amount, YkneoBitcoin neo) {
+    public Wallet.SendResult sendCoins(Address address, BigInteger amount, YkneoBitcoin neo) {
         Wallet.SendRequest req = Wallet.SendRequest.to(address, amount);
         req.changeAddress = getChangeAddress();
         if(wallet.completeTx(req)) {
-            System.out.println("Transaction created: "+req.tx);
-            //Sign
             int index = 0;
             for(TransactionInput input : req.tx.getInputs()) {
                 try {
@@ -211,6 +193,8 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
                         // have failed above when fetching the key to sign with.
                         throw new RuntimeException("Do not understand script type: " + scriptPubKey);
                     }
+
+                    return wallet.sendCoins(req);
                 } catch (ScriptException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 } catch (PinModeLockedException e) {
@@ -223,14 +207,13 @@ public class DeterministicWallet implements BlockChainListener, Serializable {
             }
         }
 
-        return req.tx;
+        throw new RuntimeException("Unable to complete transaction!");
     }
 
-    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
-    }
-
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
+    private class WalletListener extends AbstractWalletEventListener {
+        @Override
+        public void onCoinsReceived(Wallet wallet, Transaction tx, BigInteger prevBalance, BigInteger newBalance) {
+            seeTransaction(tx);
+        }
     }
 }
