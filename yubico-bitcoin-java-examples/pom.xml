@@ -14,13 +14,20 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>yubico-bitcoin-java-pcsc</artifactId>
+            <artifactId>yubico-bitcoin-java-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
              <groupId>com.google</groupId>
             <artifactId>bitcoinj</artifactId>
             <version>0.11-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>yubico-bitcoin-java-pcsc</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
