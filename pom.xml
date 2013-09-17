@@ -19,6 +19,7 @@
         <module>yubico-bitcoin-java-core</module>
         <module>yubico-bitcoin-java-pcsc</module>
         <module>yubico-bitcoin-java-android</module>
+        <module>yubico-bitcoin-java-examples</module>
     </modules>
 
     <scm>
