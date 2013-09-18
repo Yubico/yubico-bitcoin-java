@@ -1,0 +1,45 @@
+Yubico-bitcoin-java
+-------------------
+Java client library for communicating with the ykneo-bitcoin applet for the 
+YubiKey NEO.
+
+This library exposes the Bitcoin BIP32 functionality that ykneo-bitcoin 
+provides. It can be used to implement YubiKey NEO support for bitcoin wallets.
+
+This project consists of the following modules:
+
+ * yubico-bitcoin-java-core:
+    This is the main API and common utility classes.
+ * yubico-bitcoin-java-pcsc:
+    A smartcard implementation of YkneoBitcoin, communicating with the YubiKey 
+    NEO over USB using PCSC.
+ * yubico-bitcoin-java-android:
+    An Android implementation of YkneoBitcoin, communicating with the YubiKey
+    NEO over NFC.
+ * yubico-bitcoin-java-soft:
+    A software implementation of YkneoBitcoin for testing purposes, that 
+    doesn't use a YubiKey NEO at all.
+ * yubico-bitcoin-java-examples:
+    Sample code for working with YkneoBitcoin.
+
+Using
+-----
+The easiest way to use this project is by adding it as a maven dependency to 
+your project:
+
+    <dependency>
+      <groupId>com.yubico.bitcoin</groupId>
+      <artifactId>yubico-bitcoin-java-soft</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+
+Building
+--------
+This project uses maven (http://maven.apache.org/) for building and dependency
+management. To build, run:
+
+    mvn clean package
+
+Or, to build and install into your local maven repository:
+
+    mvn clean install
