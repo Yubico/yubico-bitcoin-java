@@ -53,7 +53,8 @@ public class YkneoBitcoinPCSCTest {
                 card = terminal.connect("*");
             }
         }
-        assertNotNull("YubiKey NEO not found!", card);
+        //If no card is found, we can't run these tests.
+        Assume.assumeNotNull(card);
 
         //Ensure that the key is empty
         YkneoBitcoin neo = new YkneoBitcoinPCSC(card.getBasicChannel());
