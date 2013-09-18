@@ -97,6 +97,7 @@ public class DeterministicWallet {
         }
 
         path = Lists.newArrayList(INTERNAL_CHAIN);
+        path.add(null);
         for (int i = 0; i < highestExternal; i++) {
             path.set(INTERNAL_CHAIN.size(), new ChildNumber(i, false));
 
@@ -158,13 +159,21 @@ public class DeterministicWallet {
         }
     }
 
+    /**
+     * Gets the next change address from the internal chain.
+     * @return
+     */
     public Address getChangeAddress() {
         List<ChildNumber> path = Lists.newArrayList(INTERNAL_CHAIN);
         path.add(new ChildNumber(nextInternal++, false));
         return internalKeys.get(path, true, false).toECKey().toAddress(wallet.getParams());
     }
 
-    public Wallet.SendResult sendCoins(Address address, BigInteger amount, YkneoBitcoin neo) {
+    public Wallet.SendResult send(Wallet.SendRequest request) {
+        return wallet.sendCoins(request);
+    }
+
+    public Wallet.SendRequest prepareSendRequest(Address address, BigInteger amount, YkneoBitcoin neo) {
         Wallet.SendRequest req = Wallet.SendRequest.to(address, amount);
         req.changeAddress = getChangeAddress();
         if(wallet.completeTx(req)) {
@@ -193,21 +202,23 @@ public class DeterministicWallet {
                         // have failed above when fetching the key to sign with.
                         throw new RuntimeException("Do not understand script type: " + scriptPubKey);
                     }
-
-                    return wallet.sendCoins(req);
                 } catch (ScriptException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException("Unable to complete transaction!");
                 } catch (PinModeLockedException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException("Unable to complete transaction!");
                 } catch (UnusableIndexException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException("Unable to complete transaction!");
                 } catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException("Unable to complete transaction!");
                 }
             }
         }
 
-        throw new RuntimeException("Unable to complete transaction!");
+        return req;
     }
 
     private class WalletListener extends AbstractWalletEventListener {

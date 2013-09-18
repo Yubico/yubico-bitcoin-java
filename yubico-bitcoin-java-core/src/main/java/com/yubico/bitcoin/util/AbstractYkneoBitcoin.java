@@ -45,6 +45,8 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
         if (apduStatus(resp) != 0x9000) {
             if(apduStatus(resp) == 0x6a82) {
                 throw new NoKeyLoadedException();
+            } else if(apduStatus(resp) == 0x6986) {
+                throw new OperationNotPermittedException();
             }
             throw new RuntimeException(String.format("APDU error: 0x%02x%02x", resp[resp.length-2], resp[resp.length-1]));
         }

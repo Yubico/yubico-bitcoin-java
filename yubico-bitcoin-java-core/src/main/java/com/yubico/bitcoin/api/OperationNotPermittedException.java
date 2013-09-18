@@ -7,7 +7,7 @@
 
 package com.yubico.bitcoin.api;
 
-import java.util.concurrent.ExecutionException;
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
  * Time: 11:59 AM
  * To change this template use File | Settings | File Templates.
  */
-public class OperationNotPermittedException extends ExecutionException {
+public class OperationNotPermittedException extends IOException {
     public OperationNotPermittedException() {
         super("The performed operation is not allowed");
     }

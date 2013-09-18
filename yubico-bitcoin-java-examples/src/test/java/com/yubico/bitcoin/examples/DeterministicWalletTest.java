@@ -10,10 +10,12 @@ package com.yubico.bitcoin.examples;
 import com.google.bitcoin.core.*;
 import com.google.bitcoin.crypto.HDKeyDerivation;
 import com.google.bitcoin.discovery.DnsDiscovery;
+import com.google.bitcoin.kits.WalletAppKit;
 import com.google.bitcoin.params.TestNet3Params;
 import com.google.bitcoin.store.SPVBlockStore;
 import com.google.bitcoin.store.UnreadableWalletException;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Service;
 import com.yubico.bitcoin.api.YkneoBitcoin;
 import com.yubico.bitcoin.pcsc.YkneoBitcoinPCSC;
 
@@ -23,6 +25,7 @@ import javax.smartcardio.CardTerminals;
 import javax.smartcardio.TerminalFactory;
 import java.io.File;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DeterministicWalletTest {
     private static final NetworkParameters PARAMS = TestNet3Params.get();
-    private static final File WALLET_FILE = new File("test.wallet");
+    private static final File KIT_DIR = new File(".");
 
     public static void main(String[] argv) throws Exception {
         TerminalFactory factory = TerminalFactory.getDefault();
@@ -46,7 +49,7 @@ public class DeterministicWalletTest {
             }
         }
 
-        YkneoBitcoin neo = new YkneoBitcoinPCSC(card.getBasicChannel());
+        final YkneoBitcoin neo = new YkneoBitcoinPCSC(card.getBasicChannel());
         neo.unlockAdmin("00000000");
 
         byte[] masterPubKey = neo.exportExtendedPublicKey();
@@ -54,48 +57,46 @@ public class DeterministicWalletTest {
         byte[] chaincode = new byte[32];
         System.arraycopy(masterPubKey, 13, chaincode, 0, 32);
         System.arraycopy(masterPubKey, 45, pubkey, 0, 33);
-        // Try to read the wallet from storage, create a new one if not possible.
-        Wallet wallet;
-        boolean freshWallet = false;
-        try {
-            wallet = Wallet.loadFromFile(WALLET_FILE);
-        } catch (UnreadableWalletException e) {
-            wallet = new Wallet(PARAMS);
 
-            wallet.saveToFile(WALLET_FILE);
-            freshWallet = true;
-        }
 
-        DeterministicWallet detWallet = new DeterministicWallet(wallet, HDKeyDerivation.createMasterPubKeyFromBytes(pubkey, chaincode));
+        WalletAppKit kit = new WalletAppKit(PARAMS, KIT_DIR, "testkit");
 
-        System.out.println(wallet);
+        kit.setAutoSave(true).setBlockingStartup(false).startAndWait();
 
-        wallet.autosaveToFile(WALLET_FILE, 500, TimeUnit.MILLISECONDS, null);
-
-        File blockChainFile = new File("test.blockchain");
-        if (!blockChainFile.exists() && !freshWallet) {
-            // No block chain, but we had a wallet. So empty out the transactions in the wallet so when we rescan
-            // the blocks there are no problems (wallets don't support replays without being emptied).
-            wallet.clearTransactions(0);
-        }
-
-        wallet.addEventListener(new AbstractWalletEventListener() {
+        kit.wallet().addEventListener(new AbstractWalletEventListener() {
             @Override
-            public void onWalletChanged(Wallet wallet) {
-                // MUST BE THREAD SAFE.
-                System.out.println(wallet.toString());
+            public void onCoinsReceived(Wallet wallet, Transaction tx, BigInteger prevBalance, BigInteger newBalance) {
+                System.out.println(wallet);
+            }
+
+            @Override
+            public void onCoinsSent(Wallet wallet, Transaction tx, BigInteger prevBalance, BigInteger newBalance) {
+                System.out.println(wallet);
+            }
+
+            @Override
+            public void onKeysAdded(Wallet wallet, List<ECKey> keys) {
+                System.out.println(wallet);
             }
         });
 
-        BlockChain chain = new BlockChain(PARAMS, wallet, new SPVBlockStore(PARAMS, blockChainFile));
-        //chain.addListener(detWallet);
+        final DeterministicWallet detWallet = new DeterministicWallet(kit.wallet(), HDKeyDerivation.createMasterPubKeyFromBytes(pubkey, chaincode));
+        System.out.println(kit.wallet());
 
-        PeerGroup peerGroup = new PeerGroup(PARAMS, chain);
-        peerGroup.setUserAgent("TestWallet", "0.1");
-        peerGroup.addPeerDiscovery(new DnsDiscovery(PARAMS));
-        peerGroup.addWallet(wallet);
+        final Address address = new Address(PARAMS, "moHuXamnKzBLn45tFcZtg9xPvRBq2fgbfk");
 
-        peerGroup.start();
+        Thread.sleep(5000);
+
+        neo.unlockUser("000000");
+        //final Wallet.SendRequest req = detWallet.prepareSendRequest(address, BigInteger.valueOf(1500000), neo);
+        //wallet.commitTx(req.tx);
+        //peerGroup.broadcastTransaction(req.tx).addListener(new Runnable() {
+        //    @Override
+        //    public void run() {
+        //        System.out.println("Transaction sent: " + req.tx);
+        //    }
+        //}, MoreExecutors.sameThreadExecutor());
+        //sendCoins(neo, detWallet, address, BigInteger.valueOf(1500000), peerGroup);
 
         while (true) {
             Thread.sleep(10000);
@@ -103,12 +104,15 @@ public class DeterministicWalletTest {
         }
     }
 
-    private static void sendCoins(YkneoBitcoin neo, DeterministicWallet wallet, Address receiver, BigInteger amount) {
-        final Wallet.SendResult res = wallet.sendCoins(receiver, amount, neo);
-        res.broadcastComplete.addListener(new Runnable() {
+    private static void sendCoins(YkneoBitcoin neo, DeterministicWallet wallet, Address receiver, BigInteger amount, TransactionBroadcaster broadcaster) {
+        final Wallet.SendRequest req = wallet.prepareSendRequest(receiver, amount, neo);
+
+        System.out.println("Preparing to broadcast: "+req.tx);
+
+        broadcaster.broadcastTransaction(req.tx).addListener(new Runnable() {
             @Override
             public void run() {
-                System.out.println("Transaction sent: " + res.tx);
+                System.out.println("Transaction sent: " + req.tx);
             }
         }, MoreExecutors.sameThreadExecutor());
 
