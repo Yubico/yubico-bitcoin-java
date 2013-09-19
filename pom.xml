@@ -15,15 +15,13 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yubico.bitcoin</groupId>
     <artifactId>yubico-bitcoin-java-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
     <name>yubico-bitcoin-java</name>
     <description>Java client library for communicating with the ykneo-bitcoin applet for the YubiKey NEO</description>
     <organization>
@@ -60,7 +58,7 @@
         <url>scm:git:ssh://github.com/Yubico/yubico-bitcoin-java.git</url>
         <connection>scm:git:ssh://github.com/Yubico/yubico-bitcoin-java.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/Yubico/yubico-bitcoin-java.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>yubico-bitcoin-java-0.1</tag>
     </scm>
 
     <distributionManagement>
