@@ -94,6 +94,7 @@
                     <version>2.4.1</version>
                     <configuration>
                         <goals>package</goals>
+                        <tagNameFormat>yubico-bitcoin-java-@{project.version}</tagNameFormat>
                         <localCheckout>true</localCheckout>
                         <pushChanges>false</pushChanges>
                     </configuration>
