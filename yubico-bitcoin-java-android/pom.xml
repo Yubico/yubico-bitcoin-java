@@ -26,6 +26,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>yubico-bitcoin-java-android</artifactId>
+    <name>yubico-bitcoin-java-android</name>
+    <description>An Android implementation of YkneoBitcoin, communicating with the YubiKey NEO over NFC</description>
 
     <dependencies>
         <dependency>
@@ -33,7 +35,7 @@
             <artifactId>yubico-bitcoin-java-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-	<dependency>
+        <dependency>
             <groupId>com.google.android</groupId>
             <artifactId>android</artifactId>
             <version>4.1.1.4</version>

@@ -12,7 +12,7 @@ This project consists of the following modules:
     This is the main API and common utility classes.
  * yubico-bitcoin-java-pcsc:
     A smartcard implementation of YkneoBitcoin, communicating with the YubiKey 
-    NEO over USB using PCSC.
+    NEO over USB using PC/SC.
  * yubico-bitcoin-java-android:
     An Android implementation of YkneoBitcoin, communicating with the YubiKey
     NEO over NFC.

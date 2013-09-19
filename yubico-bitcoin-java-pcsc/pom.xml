@@ -26,6 +26,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>yubico-bitcoin-java-pcsc</artifactId>
+    <name>yubico-bitcoin-java-pcsc</name>
+    <description>A smartcard implementation of YkneoBitcoin, communicating with the YubiKey NEO over USB using PC/SC
+    </description>
 
     <dependencies>
         <dependency>

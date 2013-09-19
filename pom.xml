@@ -24,6 +24,30 @@
     <artifactId>yubico-bitcoin-java-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <name>yubico-bitcoin-java</name>
+    <description>Java client library for communicating with the ykneo-bitcoin applet for the YubiKey NEO</description>
+    <organization>
+        <name>Yubico AB</name>
+        <url>http://www.yubico.com/</url>
+    </organization>
+    <url>http://opensource.yubico.com/yubico-bitcoin-java</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>dain</id>
+            <name>Dain Nilsson</name>
+            <email>dain@yubico.com</email>
+        </developer>
+    </developers>
+
     <modules>
         <module>yubico-bitcoin-java-core</module>
         <module>yubico-bitcoin-java-pcsc</module>
@@ -33,9 +57,10 @@
     </modules>
 
     <scm>
-        <url>scm:git:ssh://intgit.yubico.com/git/yubico-bitcoin-java.git</url>
-        <connection>scm:git:ssh://intgit.yubico.com/git/yubico-bitcoin-java.git</connection>
-        <developerConnection>scm:git:ssh://intgit.yubico.com/git/yubico-bitcoin-java.git</developerConnection>
+        <url>scm:git:ssh://github.com/Yubico/yubico-bitcoin-java.git</url>
+        <connection>scm:git:ssh://github.com/Yubico/yubico-bitcoin-java.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Yubico/yubico-bitcoin-java.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
 
     <build>

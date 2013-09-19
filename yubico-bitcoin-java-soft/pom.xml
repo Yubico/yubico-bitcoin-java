@@ -26,6 +26,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>yubico-bitcoin-java-soft</artifactId>
+    <name>yubico-bitcoin-java-soft</name>
+    <description>A software implementation of YkneoBitcoin for testing purposes, that doesn't use a YubiKey NEO at
+        all.
+    </description>
 
     <dependencies>
         <dependency>
