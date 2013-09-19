@@ -38,7 +38,7 @@ import java.util.List;
  * This is an example using a bitcoinj Wallet together with a YubiKey NEO with a BIP 32 master key.
  * External (public) addresses are derived from the master key using the m/0 chain.
  * Internal (change) addresses are derived from the master key using the m/1 chain.
- *
+ * <p/>
  * Note that m doesn't need to be the root key, it can be any extended key, as long as it is loaded onto the NEO.
  */
 public class DeterministicWallet {
@@ -72,9 +72,48 @@ public class DeterministicWallet {
             createExternal();
         }
 
-        for(Transaction tx : wallet.getTransactions(true)) {
+        for (Transaction tx : wallet.getTransactions(true)) {
             seeTransaction(tx);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(wallet.toString());
+
+        sb.append("Public chain:\n");
+        List<ChildNumber> path = Lists.newArrayList(EXTERNAL_CHAIN);
+        path.add(null);
+        for (int i = 0; i <= highestExternal; i++) {
+            path.set(EXTERNAL_CHAIN.size(), new ChildNumber(i, false));
+
+            DeterministicKey deterministicKey = externalKeys.get(path, true, false);
+            sb.append("  0/").append(i).append(" ").append(deterministicKey.toECKey().toAddress(wallet.getParams())).append(" ").append(deterministicKey.toECKey().toString()).append("\n");
+        }
+
+        sb.append("Private chain:\n");
+        path = Lists.newArrayList(INTERNAL_CHAIN);
+        path.add(null);
+        for (int i = 0; i <= highestInternal; i++) {
+            path.set(INTERNAL_CHAIN.size(), new ChildNumber(i, false));
+
+            DeterministicKey deterministicKey = internalKeys.get(path, true, false);
+            sb.append("  1/").append(i).append(" ").append(deterministicKey.toECKey().toAddress(wallet.getParams())).append(" ").append(deterministicKey.toECKey().toString()).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public List<ECKey> getExternalKeys() {
+        ImmutableList.Builder<ECKey> keys = ImmutableList.builder();
+        List<ChildNumber> path = Lists.newArrayList(EXTERNAL_CHAIN);
+        path.add(null);
+        for (int i = 0; i < highestExternal; i++) {
+            path.set(EXTERNAL_CHAIN.size(), new ChildNumber(i, false));
+            keys.add(externalKeys.get(path, true, false).toECKey());
+        }
+
+        return keys.build();
     }
 
     private ECKey createInternal() {
@@ -107,7 +146,7 @@ public class DeterministicWallet {
 
         path = Lists.newArrayList(INTERNAL_CHAIN);
         path.add(null);
-        for (int i = 0; i < highestExternal; i++) {
+        for (int i = 0; i < highestInternal; i++) {
             path.set(INTERNAL_CHAIN.size(), new ChildNumber(i, false));
 
             DeterministicKey deterministicKey = internalKeys.get(path, true, false);
@@ -120,13 +159,14 @@ public class DeterministicWallet {
     }
 
     private void seeTransaction(Transaction tx) {
-        for(TransactionOutput output : tx.getOutputs()) {
+        for (TransactionOutput output : tx.getOutputs()) {
             try {
-                if(output.isMine(wallet)) {
+                if (output.isMine(wallet)) {
                     if (output.getScriptPubKey().isSentToRawPubKey()) {
                         updateInternalLookahead(wallet.findKeyFromPubKey(output.getScriptBytes()));
                     } else {
                         updateExternalLookahead(wallet.findKeyFromPubHash(output.getScriptPubKey().getPubKeyHash()));
+                        updateInternalLookahead(wallet.findKeyFromPubHash(output.getScriptPubKey().getPubKeyHash()));
                     }
                 }
             } catch (ScriptException e) {
@@ -140,7 +180,6 @@ public class DeterministicWallet {
         path.add(null);
         for (int i = 0; i < highestExternal; i++) {
             path.set(EXTERNAL_CHAIN.size(), new ChildNumber(i, false));
-
             if (Arrays.equals(key.getPubKey(), externalKeys.get(path, true, false).getPubKeyBytes())) {
                 int newHighest = i + LOOKAHEAD_WINDOW;
                 while (highestExternal < newHighest) {
@@ -158,7 +197,7 @@ public class DeterministicWallet {
             path.set(INTERNAL_CHAIN.size(), new ChildNumber(i, false));
 
             if (Arrays.equals(key.getPubKey(), internalKeys.get(path, true, false).getPubKeyBytes())) {
-                nextInternal = Math.max(nextInternal, i+1);
+                nextInternal = Math.max(nextInternal, i + 1);
                 int newHighest = i + LOOKAHEAD_WINDOW;
                 while (highestInternal < newHighest) {
                     createInternal();
@@ -170,12 +209,13 @@ public class DeterministicWallet {
 
     /**
      * Gets the next change address from the internal chain.
+     *
      * @return
      */
     public Address getChangeAddress() {
         List<ChildNumber> path = Lists.newArrayList(INTERNAL_CHAIN);
         path.add(new ChildNumber(nextInternal++, false));
-        return internalKeys.get(path, true, false).toECKey().toAddress(wallet.getParams());
+        return internalKeys.get(path, true, true).toECKey().toAddress(wallet.getParams());
     }
 
     public Wallet.SendResult send(Wallet.SendRequest request) {
@@ -185,9 +225,9 @@ public class DeterministicWallet {
     public Wallet.SendRequest prepareSendRequest(Address address, BigInteger amount, YkneoBitcoin neo) {
         Wallet.SendRequest req = Wallet.SendRequest.to(address, amount);
         req.changeAddress = getChangeAddress();
-        if(wallet.completeTx(req)) {
+        if (wallet.completeTx(req)) {
             int index = 0;
-            for(TransactionInput input : req.tx.getInputs()) {
+            for (TransactionInput input : req.tx.getInputs()) {
                 try {
                     ECKey key = input.getOutpoint().getConnectedKey(wallet);
                     Script scriptPubKey = input.getOutpoint().getConnectedOutput().getScriptPubKey();
@@ -196,7 +236,7 @@ public class DeterministicWallet {
 
                     int[] path = Ints.toArray(Lists.newArrayList(Iterables.transform(lookup(key).getChildNumberPath(), new Function<ChildNumber, Integer>() {
                         @Override
-                        public Integer apply( ChildNumber input) {
+                        public Integer apply(ChildNumber input) {
                             return input.getChildNumber();
                         }
                     })));
@@ -207,8 +247,6 @@ public class DeterministicWallet {
                     } else if (scriptPubKey.isSentToRawPubKey()) {
                         input.setScriptSig(ScriptBuilder.createInputScript(sig));
                     } else {
-                        // Should be unreachable - if we don't recognize the type of script we're trying to sign for, we should
-                        // have failed above when fetching the key to sign with.
                         throw new RuntimeException("Do not understand script type: " + scriptPubKey);
                     }
                 } catch (ScriptException e) {

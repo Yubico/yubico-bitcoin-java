@@ -34,6 +34,7 @@ import javax.smartcardio.CardTerminals;
 import javax.smartcardio.TerminalFactory;
 import java.io.File;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -70,27 +71,31 @@ public class DeterministicWalletTest {
 
         WalletAppKit kit = new WalletAppKit(PARAMS, KIT_DIR, "testkit");
 
-        kit.setAutoSave(true).setBlockingStartup(false).startAndWait();
+        kit.setAutoSave(true).setBlockingStartup(false).setPeerNodes(new PeerAddress(InetAddress.getByName("seed.bitcoin.sipa.be"), 18333),
+                new PeerAddress(InetAddress.getByName("testnet-seed.bitcoin.petertodd.org"), 18333),
+                new PeerAddress(InetAddress.getByName("node3.mycelium.com"), 18333),
+                new PeerAddress(InetAddress.getLocalHost(), 18333)).startAndWait();
 
+        final DeterministicWallet detWallet = new DeterministicWallet(kit.wallet(), HDKeyDerivation.createMasterPubKeyFromBytes(pubkey, chaincode));
         kit.wallet().addEventListener(new AbstractWalletEventListener() {
             @Override
             public void onCoinsReceived(Wallet wallet, Transaction tx, BigInteger prevBalance, BigInteger newBalance) {
-                System.out.println(wallet);
+                System.out.println(detWallet);
             }
 
             @Override
             public void onCoinsSent(Wallet wallet, Transaction tx, BigInteger prevBalance, BigInteger newBalance) {
-                System.out.println(wallet);
+                System.out.println(detWallet);
             }
 
             @Override
             public void onKeysAdded(Wallet wallet, List<ECKey> keys) {
-                System.out.println(wallet);
+                System.out.println(detWallet);
             }
         });
 
-        final DeterministicWallet detWallet = new DeterministicWallet(kit.wallet(), HDKeyDerivation.createMasterPubKeyFromBytes(pubkey, chaincode));
-        System.out.println(kit.wallet());
+
+        System.out.println(detWallet);
 
         final Address address = new Address(PARAMS, "moHuXamnKzBLn45tFcZtg9xPvRBq2fgbfk");
 
@@ -116,7 +121,7 @@ public class DeterministicWalletTest {
     private static void sendCoins(YkneoBitcoin neo, DeterministicWallet wallet, Address receiver, BigInteger amount, TransactionBroadcaster broadcaster) {
         final Wallet.SendRequest req = wallet.prepareSendRequest(receiver, amount, neo);
 
-        System.out.println("Preparing to broadcast: "+req.tx);
+        System.out.println("Preparing to broadcast: " + req.tx);
 
         broadcaster.broadcastTransaction(req.tx).addListener(new Runnable() {
             @Override
