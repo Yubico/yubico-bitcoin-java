@@ -42,12 +42,18 @@ import java.io.IOException;
  */
 public interface YkneoBitcoin {
     /**
-     * Gets the version of the ykneo-bitcoin applet that is loaded on the YubiKey NEO as a 3 byte array.
-     * The contained bytes represent the major, minor and micro versions of the applet.
+     * Gets the version of the ykneo-bitcoin applet that is loaded on the YubiKey NEO.
+     * The format is "major.minor.micro".
      *
      * @return The ykneo-bitcoin applet version.
      */
-    byte[] getAppletVersion();
+    String getAppletVersion();
+
+    /**
+     * Checks if an extended private key has been loaded onto the device or not.
+     * @return
+     */
+    boolean isKeyLoaded();
 
     /**
      * Unlocks user mode of operation. If the incorrect PIN is given too many times, the mode will be locked.
@@ -112,6 +118,30 @@ public interface YkneoBitcoin {
      * @throws IOException
      */
     void resetUserPin(String newPin) throws PinModeLockedException, IOException;
+
+    /**
+     * Sets the maximum number of PIN entry attempts before locking the user PIN.
+     * Requires admin mode to be unlocked.
+     *
+     * NOTE: This requires admin mode, even though it sets the retry counter for the user PIN!
+     *
+     * @param attempts the number of failed attempts before lock, must be 1-15.
+     * @throws PinModeLockedException
+     * @throws IOException
+     * @since ykneo-bitcoin 0.1.0
+     */
+    void setUserRetryCount(int attempts) throws PinModeLockedException, IOException;
+
+    /**
+     * Sets the maximum number of PIN entry attempts before locking the admin PIN.
+     * Requires admin mode to be unlocked.
+     *
+     * @param attempts the number of failed attempts before lock, must be 1-15.
+     * @throws PinModeLockedException
+     * @throws IOException
+     * @since ykneo-bitcoin 0.1.0
+     */
+    void setAdminRetryCount(int attempts) throws PinModeLockedException, IOException;
 
     /**
      * Gets the 13 byte BIP 32 key header for the stored extended private key.

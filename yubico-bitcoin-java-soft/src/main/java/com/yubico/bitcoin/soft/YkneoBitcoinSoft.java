@@ -41,8 +41,8 @@ import java.util.List;
  * It will allow you to test interop with YkneoBitcoin without requiring a physical YubiKey NEO with the applet.
  */
 public class YkneoBitcoinSoft implements YkneoBitcoin {
-    private static final byte[] VERSION = new byte[]{0, 0, 1};
-    private static final int PIN_TRIES = 3;
+    private static final String VERSION = "0.1.0";
+    private static final int DEFAULT_PIN_TRIES = 6;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -52,8 +52,10 @@ public class YkneoBitcoinSoft implements YkneoBitcoin {
     private String adminPin = "00000000";
     private boolean allowExport = false;
 
-    private int userTries = PIN_TRIES;
-    private int adminTries = PIN_TRIES;
+    private int userMaxRetries = DEFAULT_PIN_TRIES;
+    private int adminMaxRetries = DEFAULT_PIN_TRIES;
+    private int userTries = userMaxRetries;
+    private int adminTries = adminMaxRetries;
     private boolean userLocked = true;
     private boolean adminLocked = true;
 
@@ -71,15 +73,20 @@ public class YkneoBitcoinSoft implements YkneoBitcoin {
     }
 
     @Override
-    public byte[] getAppletVersion() {
+    public String getAppletVersion() {
         return VERSION;
+    }
+
+    @Override
+    public boolean isKeyLoaded() {
+        return master != null;
     }
 
     @Override
     public void unlockUser(String pin) throws IncorrectPINException, IOException {
         if (userPin.equals(pin)) {
             userLocked = false;
-            userTries = PIN_TRIES;
+            userTries = userMaxRetries;
             return;
         } else if (userTries > 0) {
             userTries--;
@@ -92,7 +99,7 @@ public class YkneoBitcoinSoft implements YkneoBitcoin {
     public void unlockAdmin(String pin) throws IncorrectPINException, IOException {
         if (adminPin.equals(pin)) {
             adminLocked = false;
-            adminTries = PIN_TRIES;
+            adminTries = adminMaxRetries;
             return;
         } else if (adminTries > 0) {
             adminTries--;
@@ -143,7 +150,7 @@ public class YkneoBitcoinSoft implements YkneoBitcoin {
     public void resetUserPin(String newPin) throws PinModeLockedException, IOException {
         ensurePin(PinMode.ADMIN);
         userPin = newPin;
-        userTries = PIN_TRIES;
+        userTries = userMaxRetries;
     }
 
     private void ensureKey() throws NoKeyLoadedException {
@@ -174,6 +181,20 @@ public class YkneoBitcoinSoft implements YkneoBitcoin {
         }
 
         return master.get(path, true, true);
+    }
+
+    @Override
+    public void setAdminRetryCount(int attempts) throws PinModeLockedException, IOException {
+        ensurePin(PinMode.ADMIN);
+        adminMaxRetries = attempts;
+        adminTries = adminMaxRetries;
+    }
+
+    @Override
+    public void setUserRetryCount(int attempts) throws PinModeLockedException, IOException {
+        ensurePin(PinMode.USER);
+        userMaxRetries = attempts;
+        userTries = userMaxRetries;
     }
 
     @Override

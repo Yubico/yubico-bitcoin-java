@@ -18,9 +18,13 @@ package com.yubico.bitcoin.pcsc;
 
 import com.google.common.io.BaseEncoding;
 import com.yubico.bitcoin.api.*;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.AnyOf;
 import org.junit.*;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.AnyOf.anyOf;
 import static org.junit.Assert.*;
 
 import javax.smartcardio.*;
@@ -58,13 +62,7 @@ public class YkneoBitcoinPCSCTest {
 
         //Ensure that the key is empty
         YkneoBitcoin neo = new YkneoBitcoinPCSC(card.getBasicChannel());
-        try {
-            neo.unlockUser(userPin);
-            neo.getHeader();
-            fail("Key already loaded!");
-        } catch (NoKeyLoadedException e) {
-
-        }
+        assertFalse("Key already loaded!", neo.isKeyLoaded());
     }
 
     @Before
@@ -74,7 +72,7 @@ public class YkneoBitcoinPCSCTest {
 
     @Test
     public void testGetVersion() throws Exception {
-        assertArrayEquals(new byte[] {0, 0, 1}, neo.getAppletVersion());
+        assertThat(neo.getAppletVersion(), anyOf(is("0.0.1"), is("0.1.0")));
     }
 
     @Test
@@ -84,9 +82,9 @@ public class YkneoBitcoinPCSCTest {
 
         try {
             neo.unlockUser(userPin);
-            assertTrue(neo.isUserUnlocked());
+            fail("Unlocked with wrong PIN!");
         } catch (IncorrectPINException e) {
-            assertEquals(2, e.getTriesRemaining());
+            assertEquals(5, e.getTriesRemaining());
             assertEquals(PinMode.USER, e.getPinMode());
             assertFalse(neo.isUserUnlocked());
         }
@@ -102,9 +100,9 @@ public class YkneoBitcoinPCSCTest {
 
         try {
             neo.unlockAdmin(adminPin);
-            assertTrue(neo.isAdminUnlocked());
+            fail("Unlocked with wrong PIN!");
         } catch (IncorrectPINException e) {
-            assertEquals(2, e.getTriesRemaining());
+            assertEquals(5, e.getTriesRemaining());
             assertEquals(PinMode.ADMIN, e.getPinMode());
             assertFalse(neo.isAdminUnlocked());
         }
@@ -123,6 +121,7 @@ public class YkneoBitcoinPCSCTest {
                 neo.unlockUser("foobar");
             } catch (IncorrectPINException e) {
                 locked = e.getTriesRemaining() == 0;
+                System.out.println("Tries left: "+e.getTriesRemaining());
             }
         }
         assertTrue(locked);

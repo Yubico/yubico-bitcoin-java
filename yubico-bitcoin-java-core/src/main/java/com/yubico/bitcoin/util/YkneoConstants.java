@@ -33,6 +33,7 @@ public interface YkneoConstants {
     public static final byte INS_IMPORT_KEY_PAIR = 0x12;
     public static final byte INS_EXPORT_EXT_PUB_KEY = 0x13;
     public static final byte INS_RESET_USER_PIN = 0x14;
+    public static final byte INS_SET_RETRY_COUNT = 0x15;
     public static final byte INS_VERIFY_PIN = 0x21;
     public static final byte INS_SET_PIN = 0x22;
 

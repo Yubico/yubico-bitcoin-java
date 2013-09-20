@@ -50,7 +50,7 @@ public class YkneoBitcoinSoftTest {
 
     @Test
     public void testGetVersion() throws Exception {
-        assertArrayEquals(new byte[] {0, 0, 1}, neo.getAppletVersion());
+        assertEquals("0.1.0", neo.getAppletVersion());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class YkneoBitcoinSoftTest {
             neo.unlockUser(userPin);
             fail("Unlocked with wrong PIN!");
         } catch (IncorrectPINException e) {
-            assertEquals(2, e.getTriesRemaining());
+            assertEquals(5, e.getTriesRemaining());
             assertEquals(PinMode.USER, e.getPinMode());
             assertFalse(neo.isUserUnlocked());
         }
@@ -80,7 +80,7 @@ public class YkneoBitcoinSoftTest {
             neo.unlockAdmin(adminPin);
             fail("Unlocked with wrong PIN!");
         } catch (IncorrectPINException e) {
-            assertEquals(2, e.getTriesRemaining());
+            assertEquals(5, e.getTriesRemaining());
             assertEquals(PinMode.ADMIN, e.getPinMode());
             assertFalse(neo.isAdminUnlocked());
         }
