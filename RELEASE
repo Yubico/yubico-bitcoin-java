@@ -1,5 +1,6 @@
 To make a new release:
 
+* update NEWS
 * make sure everything is commited
 * mvn release:prepare release:perform -Darguments=-Dsign.storepass=$smart_card_pin
 * if happy with the release: git push && git push --tags

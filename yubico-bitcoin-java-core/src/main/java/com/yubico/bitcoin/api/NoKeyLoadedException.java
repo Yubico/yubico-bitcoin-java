@@ -27,6 +27,6 @@ import java.io.IOException;
  */
 public class NoKeyLoadedException extends IOException {
     public NoKeyLoadedException() {
-        super("No master key had been loaded on the device");
+        super("No master key has been loaded on the device");
     }
 }

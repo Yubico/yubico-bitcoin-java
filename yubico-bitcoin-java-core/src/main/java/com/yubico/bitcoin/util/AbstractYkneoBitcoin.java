@@ -174,6 +174,9 @@ public abstract class AbstractYkneoBitcoin implements YkneoBitcoin, YkneoConstan
     private int sendSetPin(String oldPin, String newPin, int p2) throws IncorrectPINException, IOException {
         byte[] oldPinBytes = oldPin.getBytes(ASCII);
         byte[] newPinBytes = newPin.getBytes(ASCII);
+        if (newPinBytes.length < 1 || newPinBytes.length > PIN_MAX_LENGTH) {
+            throw new IllegalArgumentException(String.format("PIN length must be between 1 and %d", PIN_MAX_LENGTH));
+        }
         byte[] data = new byte[oldPinBytes.length + newPinBytes.length + 2];
         data[0] = (byte) oldPinBytes.length;
         System.arraycopy(oldPinBytes, 0, data, 1, oldPinBytes.length);
