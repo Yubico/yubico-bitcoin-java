@@ -4,3 +4,8 @@ To make a new release:
 * make sure everything is commited
 * mvn release:prepare release:perform -Darguments=-Dsign.storepass=$smart_card_pin
 * if happy with the release: git push && git push --tags
+
+Update the site:
+
+* create the aggregated javadoc: mvn javadoc:aggregate
+* copy the result: cp target/site/javadoc YUBICO_GITHUB_REPO/yubico-bitcoin-java/
