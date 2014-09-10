@@ -1,7 +1,9 @@
 Author: Yubico
 Basename: yubico-bitcoin-java
-Homepage: http://opensource.yubico.com/yubico-bitcoin-java/
+Homepage: https://developers.yubico.com/yubico-bitcoin-java/
 License: Apache-2.0
 Name: yubico-bitcoin-java
 Project: yubico-bitcoin-java
-Summary: Java client library for communicating with the ykneo-bitcoin applet for the  YubiKey NEO
+Summary: Java client library for communicating with the ykneo-bitcoin applet for the YubiKey NEO
+Maven: http://search.maven.org/#browse|-1435754429
+Javadoc: https://developers.yubico.com/yubico-bitcoin-java/apidocs/
