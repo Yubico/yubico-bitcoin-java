@@ -1,6 +1,8 @@
 Yubico-bitcoin-java
 -------------------
 
+NOTE: This project is deprecated and is no longer being maintained.
+
 Java client library for communicating with the ykneo-bitcoin applet
 for the YubiKey NEO.
 
